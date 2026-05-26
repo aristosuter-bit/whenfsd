@@ -5,190 +5,356 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>WHEN FSD?</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0a0a0a;--surface:#141414;--border:#222;--text:#e5e5e5;--dim:#888;--green:#10b981;--amber:#f59e0b;--red:#ef4444;--accent:#3b82f6}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;-webkit-font-smoothing:antialiased}
-header{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--border);padding:16px 20px;display:flex;align-items:center;justify-content:space-between}
-h1{font-size:20px;font-weight:700;letter-spacing:-0.5px}
-h1 span{color:var(--accent)}
-header p{font-size:12px;color:var(--dim)}
-main{padding:16px;max-width:900px;margin:0 auto}
-.section-title{font-size:14px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin:24px 0 12px;padding-left:4px}
+:root{
+  --bg-deep:#050608;
+  --bg:#08090b;
+  --bg-surface:#0e1014;
+  --bg-elevated:#141619;
+  --bg-hover:#1a1c21;
+  --border-subtle:rgba(255,255,255,0.05);
+  --border:rgba(255,255,255,0.08);
+  --border-strong:rgba(255,255,255,0.12);
+  --text-primary:#f2f3f5;
+  --text-secondary:#a0a4ab;
+  --text-tertiary:#63676d;
+  --accent:#4f7dff;
+  --accent-glow:rgba(79,125,255,0.15);
+  --accent-strong:#6b93ff;
+  --green:#22c55e;
+  --green-glow:rgba(34,197,94,0.12);
+  --amber:#f59e0b;
+  --amber-glow:rgba(245,158,11,0.12);
+  --red:#ef4444;
+}
+body{
+  font-family:'Inter',-apple-system,system-ui,sans-serif;
+  background:var(--bg-deep);
+  color:var(--text-primary);
+  min-height:100dvh;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  letter-spacing:-0.01em;
+}
 
-/* Stats bar */
-.stats{display:flex;gap:12px;margin-bottom:8px}
-.stat-card{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
-.stat-card .num{font-size:28px;font-weight:800;letter-spacing:-1px}
-.stat-card .label{font-size:11px;color:var(--dim);margin-top:2px}
-.stat-card.green .num{color:var(--green)}
-.stat-card.amber .num{color:var(--amber)}
+/* ─── HEADER ─── */
+header{
+  position:sticky;top:0;z-index:100;
+  background:var(--bg-deep);
+  border-bottom:1px solid var(--border-subtle);
+  padding:0 24px;
+  height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+  backdrop-filter:blur(20px);
+}
+.logo{
+  display:flex;align-items:center;gap:8px;
+  font-size:17px;font-weight:700;letter-spacing:-0.02em;
+}
+.logo .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+header nav{display:flex;gap:20px}
+header nav a{
+  font-size:13px;font-weight:500;color:var(--text-tertiary);
+  text-decoration:none;transition:color .15s;
+}
+header nav a:hover,a.active{color:var(--text-primary)}
 
-/* Country grid */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:24px}
-.country-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;cursor:pointer;transition:all .15s;position:relative}
-.country-card:active{transform:scale(.97)}
-.country-card:hover{border-color:var(--accent)}
-.country-card .flag{font-size:24px;margin-bottom:4px}
-.country-card .name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.country-card .status{font-size:10px;margin-top:3px;display:flex;align-items:center;gap:4px}
-.country-card .status .dot{width:6px;height:6px;border-radius:50%}
-.country-card .status.green .dot{background:var(--green)}
-.country-card .status.amber .dot{background:var(--amber)}
-.country-card .prediction{font-size:11px;color:var(--dim);margin-top:4px}
-.badge{position:absolute;top:6px;right:6px;background:var(--green);color:#000;font-size:9px;font-weight:800;padding:2px 6px;border-radius:10px}
-.badge.approved{background:var(--green)} /* same, just class marker */
+/* ─── MAIN ─── */
+main{max-width:960px;margin:0 auto;padding:0 24px 80px}
 
-/* Modal */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px 16px 0 0;width:100%;max-width:500px;max-height:85dvh;overflow-y:auto;padding:24px;animation:slideUp .25s ease}
-@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.modal h2{font-size:18px;margin-bottom:4px}
-.modal .country-status{font-size:13px;color:var(--dim);margin-bottom:16px}
-.modal label{display:block;font-size:12px;color:var(--dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px}
-.modal input[type=date]{width:100%;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:16px;font-family:inherit;margin-bottom:16px}
-.modal input[type=date]:focus{outline:none;border-color:var(--accent)}
-.modal .score-preview{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px}
-.modal .score-preview .formula{font-family:'SF Mono',monospace;font-size:12px;color:var(--dim);margin-bottom:4px}
-.modal .score-preview .value{font-size:24px;font-weight:800;color:var(--green)}
-.modal .score-preview .value.zero{color:var(--dim)}
-.modal .btn-row{display:flex;gap:8px}
-.btn{flex:1;padding:14px;border-radius:10px;font-size:15px;font-weight:600;border:none;cursor:pointer;font-family:inherit;transition:all .15s}
+/* ─── HERO ─── */
+.hero{padding:56px 0 32px;text-align:center}
+.hero h2{
+  font-size:40px;font-weight:700;letter-spacing:-0.035em;
+  line-height:1.08;margin-bottom:8px;
+}
+.hero h2 span{color:var(--accent)}
+.hero p{font-size:16px;color:var(--text-secondary);font-weight:400}
+
+/* ─── STATS ─── */
+.stats-row{display:flex;gap:1px;margin:0 0 32px;border-radius:12px;overflow:hidden;background:var(--border-subtle)}
+.stat{
+  flex:1;background:var(--bg-surface);padding:20px 16px;
+  text-align:center;transition:background .2s;
+}
+.stat:hover{background:var(--bg-elevated)}
+.stat .num{font-size:32px;font-weight:800;letter-spacing:-0.03em;line-height:1}
+.stat .label{font-size:11px;color:var(--text-tertiary);font-weight:500;margin-top:6px;text-transform:uppercase;letter-spacing:0.05em}
+.stat.green .num{color:var(--green)}
+.stat.amber .num{color:var(--amber)}
+.stat.accent .num{color:var(--accent)}
+
+/* ─── YOUR PREDICTIONS ─── */
+.your-section{margin-bottom:32px}
+.your-section.hidden{display:none}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.section-head h3{font-size:13px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.05em}
+.your-chips{display:flex;flex-wrap:wrap;gap:6px}
+.your-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:20px;
+  background:var(--accent-glow);border:1px solid rgba(79,125,255,0.25);
+  font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;
+}
+.your-chip:hover{background:rgba(79,125,255,0.22)}
+.your-chip .flag{font-size:15px}
+.your-chip .date{color:var(--accent-strong);font-variant-numeric:tabular-nums}
+.your-chip .remove{
+  width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+  font-size:10px;color:var(--text-tertiary);background:rgba(255,255,255,0.06);
+  margin-left:2px;cursor:pointer;transition:all .15s;line-height:1;
+}
+.your-chip .remove:hover{background:rgba(239,68,68,0.2);color:var(--red)}
+
+/* ─── COUNTRY GRID ─── */
+.grid-header{margin-bottom:12px}
+.grid-header h3{font-size:13px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.05em}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1px;background:var(--border-subtle);border-radius:10px;overflow:hidden;margin-bottom:40px}
+.card{
+  background:var(--bg-surface);padding:16px;cursor:pointer;
+  transition:all .2s;position:relative;overflow:hidden;
+}
+.card::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,var(--accent-glow),transparent 70%);
+  opacity:0;transition:opacity .3s;
+}
+.card:hover{background:var(--bg-elevated)}
+.card:hover::after{opacity:1}
+.card:active{transform:scale(.97)}
+.card .flag{font-size:28px;margin-bottom:8px;position:relative;z-index:1}
+.card .name{font-size:14px;font-weight:600;position:relative;z-index:1}
+.card .meta{font-size:11px;color:var(--text-tertiary);margin-top:6px;position:relative;z-index:1;display:flex;align-items:center;gap:6px}
+.card .dot-indicator{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.card .dot-indicator.green{background:var(--green);box-shadow:0 0 6px var(--green)}
+.card .dot-indicator.amber{background:var(--amber);box-shadow:0 0 6px var(--amber)}
+
+/* Density bar */
+.card .density{position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--border-subtle)}
+.card .density .fill{height:100%;background:var(--accent);opacity:.4;transition:width .5s}
+.card.approved .density .fill{background:var(--green);opacity:.6}
+.card.yours{border:1px solid rgba(79,125,255,0.25);border-radius:0;margin:-1px}
+.card.approved{border:1px solid rgba(34,197,94,0.2);border-radius:0;margin:-1px}
+
+/* ─── LEADERBOARD ─── */
+.lb-section{margin-bottom:40px}
+.lb-list{background:var(--bg-surface);border-radius:10px;overflow:hidden}
+.lb-item{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 18px;transition:background .15s;
+  position:relative;
+}
+.lb-item:not(:last-child){border-bottom:1px solid var(--border-subtle)}
+.lb-item:hover{background:var(--bg-elevated)}
+.lb-rank{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.lb-rank._1{background:var(--amber);color:#000}
+.lb-rank._2{background:#94a3b8;color:#000}
+.lb-rank._3{background:#b45309;color:#fff}
+.lb-avatar{width:36px;height:36px;border-radius:50%;background:var(--bg-hover);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;color:var(--text-secondary)}
+.lb-info{flex:1;min-width:0}
+.lb-name{font-weight:600;font-size:14px}
+.lb-detail{font-size:12px;color:var(--text-tertiary);margin-top:1px}
+.lb-score{font-weight:700;font-size:18px;font-variant-numeric:tabular-nums;flex-shrink:0;letter-spacing:-0.02em}
+.lb-score-bar{position:absolute;left:0;top:0;bottom:0;background:var(--accent-glow);opacity:.3;border-radius:0 4px 4px 0;transition:width .6s}
+
+/* ─── FOOTER ─── */
+footer{text-align:center;padding:32px 0;color:var(--text-tertiary);font-size:12px}
+footer .divider{width:40px;height:1px;background:var(--border);margin:0 auto 16px}
+footer a{color:var(--accent-strong);text-decoration:none}
+
+/* ─── MODAL ─── */
+.modal-overlay{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.75);backdrop-filter:blur(8px);
+  display:flex;align-items:flex-end;justify-content:center;
+  animation:fadeIn .2s ease;
+}
+@keyframes fadeIn{from{opacity:0}}
+.modal{
+  background:var(--bg-elevated);border:1px solid var(--border);
+  border-radius:16px 16px 0 0;width:100%;max-width:480px;
+  max-height:85dvh;overflow-y:auto;padding:28px 24px 24px;
+  animation:slideUp .3s cubic-bezier(.16,1,.3,1);
+  position:relative;
+}
+@keyframes slideUp{from{transform:translateY(40px);opacity:0}}
+.modal-close{
+  position:absolute;top:16px;right:16px;
+  width:32px;height:32px;border-radius:50%;
+  background:var(--bg-hover);border:1px solid var(--border-subtle);
+  color:var(--text-secondary);font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+}
+.modal-close:hover{background:var(--border);color:var(--text-primary)}
+
+.modal .country-display{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.modal .country-display .flag{font-size:32px}
+.modal .country-display h2{font-size:20px;font-weight:700;letter-spacing:-0.02em}
+.modal .badge-status{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;
+  margin-top:2px;
+}
+.modal .badge-status.approved{background:var(--green-glow);color:var(--green)}
+.modal .badge-status.pending{background:var(--amber-glow);color:var(--amber)}
+
+.modal label{
+  display:block;font-size:12px;font-weight:600;color:var(--text-tertiary);
+  text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;
+}
+.date-row{position:relative;margin-bottom:20px}
+.date-input{
+  width:100%;padding:14px 16px;
+  background:var(--bg-surface);border:1px solid var(--border);
+  border-radius:10px;color:var(--text-primary);font-size:16px;
+  font-family:inherit;transition:border-color .2s;
+}
+.date-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.quick-btns{display:flex;gap:6px;margin-top:10px}
+.quick-btn{
+  padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;
+  background:var(--bg-surface);border:1px solid var(--border);
+  color:var(--text-secondary);cursor:pointer;transition:all .15s;
+  font-family:inherit;
+}
+.quick-btn:hover{background:var(--bg-hover);border-color:var(--accent);color:var(--accent-strong)}
+.quick-btn:active{transform:scale(.95)}
+
+.score-display{
+  background:var(--bg-surface);border:1px solid var(--border);
+  border-radius:10px;padding:16px;margin-bottom:20px;
+}
+.score-display .formula-text{
+  font-family:'SF Mono','JetBrains Mono',monospace;
+  font-size:12px;color:var(--text-tertiary);margin-bottom:8px;
+}
+.score-display .big-score{
+  font-size:36px;font-weight:800;letter-spacing:-0.04em;
+  line-height:1;transition:color .3s;
+}
+.score-display .big-score.high{color:var(--green)}
+.score-display .big-score.mid{color:var(--amber)}
+.score-display .big-score.low{color:var(--text-tertiary)}
+.score-display .score-detail{font-size:12px;color:var(--text-tertiary);margin-top:6px}
+
+.btn-row{display:flex;gap:8px;margin-top:16px}
+.btn{
+  padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;
+  border:none;cursor:pointer;font-family:inherit;transition:all .15s;
+  flex:1;
+}
 .btn:active{transform:scale(.97)}
 .btn-primary{background:var(--accent);color:#fff}
-.btn-secondary{background:var(--bg);color:var(--text);border:1px solid var(--border)}
-.btn-danger{background:transparent;color:var(--red);border:1px solid var(--red)}
-.btn:disabled{opacity:.4;pointer-events:none}
+.btn-primary:hover{background:var(--accent-strong)}
+.btn-secondary{background:var(--bg-surface);color:var(--text-primary);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--border-strong)}
+.btn-destructive{background:transparent;color:var(--red);border:1px solid rgba(239,68,68,0.3)}
+.btn-destructive:hover{background:rgba(239,68,68,0.08);border-color:var(--red)}
+.btn:disabled{opacity:.35;pointer-events:none}
 
-/* Leaderboard */
-.leaderboard{list-style:none}
-.lb-item{display:flex;align-items:center;gap:12px;padding:12px;border-bottom:1px solid var(--border);font-size:14px}
-.lb-item:last-child{border:0}
-.lb-rank{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
-.lb-rank.gold{background:#f59e0b;color:#000}
-.lb-rank.silver{background:#94a3b8;color:#000}
-.lb-rank.bronze{background:#b45309;color:#fff}
-.lb-avatar{width:32px;height:32px;border-radius:50%;background:var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
-.lb-info{flex:1;min-width:0}
-.lb-name{font-weight:600}
-.lb-detail{font-size:11px;color:var(--dim)}
-.lb-score{font-weight:800;font-size:16px;font-variant-numeric:tabular-nums;flex-shrink:0}
+/* ─── TOAST ─── */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--bg-elevated);border:1px solid var(--border);
+  color:var(--text-primary);padding:12px 24px;border-radius:10px;
+  font-weight:500;font-size:13px;z-index:300;
+  animation:toastIn .3s ease;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);
+}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(8px)}}
 
-/* Formula explainer */
-.explainer{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin:24px 0}
-.explainer h3{font-size:14px;margin-bottom:8px}
-.explainer .formula-code{font-family:'SF Mono',monospace;font-size:13px;color:var(--accent);margin-bottom:8px}
-.explainer p{font-size:12px;color:var(--dim);line-height:1.5}
-
-/* Footer */
-footer{text-align:center;padding:32px 16px;color:var(--dim);font-size:12px}
-footer a{color:var(--accent)}
 .hidden{display:none!important}
 
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--green);color:#000;padding:12px 24px;border-radius:10px;font-weight:600;font-size:14px;z-index:300;animation:fadeIn .3s ease}
-@keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-
-.close-btn{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+@media(max-width:640px){
+  header{padding:0 16px}
+  main{padding:0 16px 60px}
+  .hero h2{font-size:28px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+  .card{padding:12px}
+  .card .flag{font-size:22px}
+  .card .name{font-size:12px}
+  .stat{padding:14px 10px}
+  .stat .num{font-size:24px}
+  .modal{border-radius:12px 12px 0 0;padding:24px 18px 20px}
+}
 </style>
 </head>
 <body>
 
 <header>
-  <div>
-    <h1>WHEN <span>FSD?</span></h1>
-    <p>The question every Tesla owner in Europe is asking</p>
-  </div>
+  <div class="logo"><span class="dot"></span>WHEN FSD</div>
+  <nav>
+    <a href="#" class="active">Board</a>
+    <a href="#leaderboard">Leaderboard</a>
+  </nav>
 </header>
 
 <main>
-  <div class="stats">
-    <div class="stat-card green">
+  <div class="hero">
+    <h2>When will FSD reach <span>your country?</span></h2>
+    <p>26 European nations. 2 approved. Who calls the rest?</p>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat green">
       <div class="num" id="stat-approved">2</div>
-      <div class="label">APPROVED</div>
+      <div class="label">Approved</div>
     </div>
-    <div class="stat-card amber">
-      <div class="num" id="stat-pending">26</div>
-      <div class="label">PENDING</div>
+    <div class="stat amber">
+      <div class="num" id="stat-pending">24</div>
+      <div class="label">Pending</div>
     </div>
-    <div class="stat-card">
-      <div class="num" id="stat-players">0</div>
-      <div class="label">PLAYERS</div>
+    <div class="stat accent">
+      <div class="num" id="stat-players">13</div>
+      <div class="label">Predictors</div>
     </div>
   </div>
 
-  <div class="section-title">Countries</div>
+  <div id="your-section" class="your-section hidden">
+    <div class="section-head">
+      <h3>Your Predictions</h3>
+      <span style="font-size:12px;color:var(--text-tertiary)" id="your-count"></span>
+    </div>
+    <div class="your-chips" id="your-chips"></div>
+  </div>
+
+  <div class="grid-header"><h3>All Countries</h3></div>
   <div class="grid" id="country-grid"></div>
 
-  <div class="section-title">Leaderboard</div>
-  <ul class="leaderboard" id="leaderboard"></ul>
-
-  <div class="explainer">
-    <h3>How Scoring Works</h3>
-    <div class="formula-code">Score = days_before × (100 − days_off)</div>
-    <p>The earlier you predict and the closer you are to the actual approval date — the more points you get. Change your prediction to a later date and your score drops. Push it forward too many times and you'll score nothing. Simple.</p>
+  <div class="lb-section" id="leaderboard">
+    <div class="section-head"><h3>Leaderboard</h3></div>
+    <div class="lb-list" id="lb-list"></div>
   </div>
 
   <footer>
-    Prototype · whenfsd.com<br>
-    <a href="https://github.com/aristosuter-bit/whenfsd" target="_blank">GitHub</a>
+    <div class="divider"></div>
+    Prototype · whenfsd.com · <a href="https://github.com/aristosuter-bit/whenfsd">GitHub</a>
   </footer>
 </main>
 
 <div class="modal-overlay hidden" id="modal-overlay">
   <div class="modal" id="modal">
-    <button class="close-btn" onclick="closeModal()">✕</button>
-    <h2 id="modal-flag"></h2>
-    <h2 id="modal-name"></h2>
-    <div class="country-status" id="modal-status"></div>
-    <div id="modal-approved" class="hidden">
-      <div class="score-preview">
-        <div class="formula">Approved date</div>
-        <div class="value" id="modal-approved-date"></div>
-      </div>
-      <div class="score-preview">
-        <div class="formula">Evidence</div>
-        <div style="font-size:13px;color:var(--dim)" id="modal-evidence"></div>
-      </div>
-      <button class="btn btn-secondary" onclick="closeModal()" style="width:100%">Close</button>
-    </div>
-    <div id="modal-predict">
-      <label>Your prediction</label>
-      <div style="position:relative;margin-bottom:16px">
-        <input type="date" id="prediction-date" onchange="updateScorePreview()">
-        <div style="position:absolute;right:12px;top:50%;transform:translateY(-50%);display:flex;gap:4px">
-          <button onclick="quickDate(3)" style="padding:4px 8px;font-size:11px;background:var(--bg);color:var(--accent);border:1px solid var(--accent);border-radius:4px;cursor:pointer;font-family:inherit">+3m</button>
-          <button onclick="quickDate(6)" style="padding:4px 8px;font-size:11px;background:var(--bg);color:var(--accent);border:1px solid var(--accent);border-radius:4px;cursor:pointer;font-family:inherit">+6m</button>
-          <button onclick="quickDate(12)" style="padding:4px 8px;font-size:11px;background:var(--bg);color:var(--accent);border:1px solid var(--accent);border-radius:4px;cursor:pointer;font-family:inherit">+12m</button>
-        </div>
-      </div>
-      <div class="score-preview" id="score-preview">
-        <div class="formula">Score = days_before × (100 − days_off)</div>
-        <div class="value" id="score-value">—</div>
-        <div style="font-size:11px;color:var(--dim);margin-top:4px" id="score-detail"></div>
-      </div>
-      <div class="btn-row">
-        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-        <button class="btn btn-primary" id="save-btn" onclick="savePrediction()">Save Prediction</button>
-      </div>
-      <div class="btn-row" style="margin-top:6px" id="clear-row">
-        <button class="btn btn-danger" id="clear-btn" onclick="clearPrediction()">Remove Prediction</button>
-      </div>
-    </div>
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modal-content"></div>
   </div>
 </div>
 
 <script>
-// --- DATA ---
+// ─── DATA ───
 const COUNTRIES = [
   {code:'LT',name:'Lithuania',flag:'🇱🇹',approved:'2026-02-15',evidence:'EU type-approval granted'},
   {code:'NL',name:'Netherlands',flag:'🇳🇱',approved:'2026-01-20',evidence:'RDW approval for FSD Supervised'},
   {code:'DE',name:'Germany',flag:'🇩🇪'},
   {code:'FR',name:'France',flag:'🇫🇷'},
-  {code:'GB',name:'UK',flag:'🇬🇧'},
+  {code:'GB',name:'United Kingdom',flag:'🇬🇧'},
   {code:'IT',name:'Italy',flag:'🇮🇹'},
   {code:'ES',name:'Spain',flag:'🇪🇸'},
   {code:'SE',name:'Sweden',flag:'🇸🇪'},
@@ -214,245 +380,195 @@ const COUNTRIES = [
   {code:'LU',name:'Luxembourg',flag:'🇱🇺'},
 ];
 
-// Fake players
-const PLAYERS = [
-  {name:'TeslaTom',avatar:'T',points:12500},
-  {name:'FSDProphet',avatar:'F',points:9840},
-  {name:'EV_Nordic',avatar:'E',points:7200},
-  {name:'AutopilotMax',avatar:'A',points:6100},
-  {name:'ElonFan42',avatar:'E',points:4300},
-  {name:'MunichDriver',avatar:'M',points:3100},
-  {name:'ZurichEV',avatar:'Z',points:2800},
-  {name:'OsloCharger',avatar:'O',points:1800},
-  {name:'ParisTesla',avatar:'P',points:950},
-  {name:'RomaniaFSD',avatar:'R',points:400},
-];
-
-// Fake predictions for demo
 const FAKE_PREDICTIONS = {
-  DE: ['2027-03-15','2027-06-01','2027-09-20','2028-01-10'],
-  FR: ['2027-06-01','2027-12-15','2028-03-01'],
-  GB: ['2027-09-01','2028-01-15','2028-06-01'],
-  SE: ['2027-03-01','2027-06-15'],
-  NO: ['2026-12-01','2027-03-15','2027-06-01'],
-  CH: ['2027-12-01','2028-03-15'],
-  IT: ['2027-09-15','2028-01-01'],
-  AT: ['2027-06-01','2027-09-15'],
+  DE:['2027-03-15','2027-06-01','2027-09-20','2028-01-10','2027-12-01'],
+  FR:['2027-06-01','2027-12-15','2028-03-01'],
+  GB:['2027-09-01','2028-01-15','2028-06-01','2027-06-01'],
+  SE:['2027-03-01','2027-06-15'],
+  NO:['2026-12-01','2027-03-15'],
+  CH:['2027-12-01','2028-03-15'],
+  IT:['2027-09-15','2028-01-01','2027-06-01'],
+  AT:['2027-06-01','2027-09-15'],
+  BE:['2027-06-15'],
+  DK:['2027-03-01'],
 };
 
-// Local state (in-memory for prototype)
+const LEADERBOARD = [
+  {name:'TeslaTom',initial:'T',score:26840},
+  {name:'FSDProphet',initial:'F',score:19750},
+  {name:'EV_Nordic',initial:'E',score:15420},
+  {name:'AutopilotMax',initial:'A',score:12800},
+  {name:'ElonFan42',initial:'E',score:9400},
+  {name:'MunichDriver',initial:'M',score:7200},
+  {name:'ZurichEV',initial:'Z',score:5800},
+  {name:'OsloCharger',initial:'O',score:4100},
+  {name:'ParisTesla',initial:'P',score:2200},
+  {name:'RomaniaFSD',initial:'R',score:980},
+];
+
+// ─── STATE ───
 let predictions = loadPredictions();
 let selectedCountry = null;
 
-// --- PERSISTENCE ---
-function loadPredictions() {
-  try {
-    return JSON.parse(localStorage.getItem('whenfsd_predictions')) || {};
-  } catch { return {}; }
+function loadPredictions(){try{return JSON.parse(localStorage.getItem('whenfsd_v2'))||{}}catch{return{}}}
+function savePredictions(){localStorage.setItem('whenfsd_v2',JSON.stringify(predictions))}
+
+// ─── SCORING ───
+function calcScore(predicted, actual){
+  const p=new Date(predicted),a=new Date(actual);
+  const before=Math.max(0,Math.round((a-p)/(86400000)));
+  const off=Math.abs(Math.round((a-p)/(86400000)));
+  return Math.round(before*Math.max(0,100-off));
 }
-function savePredictions() {
-  localStorage.setItem('whenfsd_predictions', JSON.stringify(predictions));
+function fmt(n){return n>=1000?(n/1000).toFixed(1)+'k':n}
+
+// ─── RENDER ───
+function totalPreds(code){
+  const f=FAKE_PREDICTIONS[code]||[];
+  const u=predictions[code];
+  let c=f.length;if(u&&!f.includes(u))c++;return c;
 }
+function maxPreds(){let m=0;COUNTRIES.forEach(c=>{const t=totalPreds(c.code);if(t>m)m=t});return m||1}
 
-// --- SCORING ---
-function calculateScore(predictedDate, actualDate) {
-  const pred = new Date(predictedDate);
-  const actual = new Date(actualDate);
-  const daysBefore = Math.max(0, Math.round((actual - pred) / (1000*60*60*24)));
-  const daysOff = Math.abs(Math.round((actual - pred) / (1000*60*60*24)));
-  if (daysBefore <= 0) return 0;
-  const factor = Math.max(0, 100 - daysOff);
-  return Math.round(daysBefore * factor);
-}
+function renderGrid(){
+  const g=document.getElementById('country-grid');
+  const pend=COUNTRIES.filter(c=>!c.approved),appr=COUNTRIES.filter(c=>c.approved);
+  const max=maxPreds();
 
-function formatScore(n) {
-  if (n >= 1000) return (n/1000).toFixed(1) + 'k';
-  return n.toString();
-}
+  g.innerHTML=[...pend,...appr].map(c=>{
+    const total=totalPreds(c.code),user=!!predictions[c.code];
+    const cls=[];if(c.approved)cls.push('approved');if(user)cls.push('yours');
 
-// --- RENDER ---
-function getPredictionCount(code) {
-  const fake = FAKE_PREDICTIONS[code] || [];
-  const user = predictions[code];
-  let count = fake.length;
-  if (user && !fake.includes(user)) count++;
-  return count;
-}
-
-function renderGrid() {
-  const grid = document.getElementById('country-grid');
-  const pending = COUNTRIES.filter(c => !c.approved);
-  const approved = COUNTRIES.filter(c => c.approved);
-
-  grid.innerHTML = [...pending, ...approved].map(c => {
-    const count = getPredictionCount(c.code);
-    const userPred = predictions[c.code];
-    const approvedHTML = c.approved
-      ? `<span class="badge">✓</span>`
-      : '';
-
-    let predHTML = '';
-    if (c.approved) {
-      predHTML = `<div class="prediction">Approved ${new Date(c.approved).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>`;
-    } else if (userPred) {
-      predHTML = `<div class="prediction">Your call: ${new Date(userPred).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>`;
-    } else if (count > 0) {
-      predHTML = `<div class="prediction">${count} prediction${count>1?'s':''}</div>`;
-    }
-
-    return `
-      <div class="country-card" onclick="openCountry('${c.code}')">
-        ${approvedHTML}
-        <div class="flag">${c.flag}</div>
-        <div class="name">${c.name}</div>
-        <div class="status ${c.approved?'green':'amber'}">
-          <span class="dot"></span>
-          ${c.approved ? 'APPROVED' : 'PENDING'}
-        </div>
-        ${predHTML}
-      </div>`;
+    return `<div class="card ${cls.join(' ')}" onclick="openCountry('${c.code}')">
+      <div class="flag">${c.flag}</div>
+      <div class="name">${c.name}</div>
+      <div class="meta">
+        <span class="dot-indicator ${c.approved?'green':'amber'}"></span>
+        ${c.approved
+          ?'Approved '+new Date(c.approved).toLocaleDateString('en-GB',{day:'numeric',month:'short'})
+          :total+' prediction'+(total!==1?'s':'')}
+      </div>
+      <div class="density"><div class="fill" style="width:${(total/max)*100}%"></div></div>
+    </div>`;
   }).join('');
 
-  document.getElementById('stat-approved').textContent = approved.length;
-  document.getElementById('stat-pending').textContent = pending.length;
-  document.getElementById('stat-players').textContent = PLAYERS.length + 3;
+  document.getElementById('stat-approved').textContent=appr.length;
+  document.getElementById('stat-pending').textContent=pend.length;
+  document.getElementById('stat-players').textContent=LEADERBOARD.length+3;
+
+  renderYourSection();
 }
 
-function renderLeaderboard() {
-  const lb = document.getElementById('leaderboard');
-  lb.innerHTML = PLAYERS.map((p,i) => {
-    const rankClass = i===0?'gold':i===1?'silver':i===2?'bronze':'';
-    return `
-      <li class="lb-item">
-        <div class="lb-rank ${rankClass}">${i+1}</div>
-        <div class="lb-avatar">${p.avatar}</div>
-        <div class="lb-info">
-          <div class="lb-name">${p.name}</div>
-          <div class="lb-detail">${Math.floor(Math.random()*5+1)} countries called</div>
-        </div>
-        <div class="lb-score">${formatScore(p.points)}</div>
-      </li>`;
+function renderYourSection(){
+  const s=document.getElementById('your-section');
+  const chips=document.getElementById('your-chips');
+  const entries=Object.entries(predictions).filter(([,v])=>v);
+  if(!entries.length){s.classList.add('hidden');return}
+  s.classList.remove('hidden');
+  document.getElementById('your-count').textContent=entries.length+'/'+COUNTRIES.filter(c=>!c.approved).length+' pending';
+  chips.innerHTML=entries.map(([code,date])=>{
+    const c=COUNTRIES.find(x=>x.code===code);
+    return `<div class="your-chip" onclick="openCountry('${code}')">
+      <span class="flag">${c?.flag||''}</span>${c?.name||code}
+      <span class="date">${new Date(date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</span>
+      <span class="remove" onclick="event.stopPropagation();clearPred('${code}')">✕</span>
+    </div>`;
   }).join('');
 }
 
-// --- MODAL ---
-function openCountry(code) {
-  selectedCountry = code;
-  const c = COUNTRIES.find(x => x.code === code);
-  const modal = document.getElementById('modal-overlay');
-  document.getElementById('modal-flag').textContent = c.flag;
-  document.getElementById('modal-name').textContent = c.name;
-  document.getElementById('modal-status').textContent = c.approved ? 'APPROVED' : 'PENDING';
+function renderLeaderboard(){
+  const max=LEADERBOARD[0].score;
+  document.getElementById('lb-list').innerHTML=LEADERBOARD.map((p,i)=>{
+    const rc=i===0?'_1':i===1?'_2':i===2?'_3':'';
+    return `<div class="lb-item">
+      <div class="lb-score-bar" style="width:${(p.score/max)*70}%"></div>
+      <div class="lb-rank ${rc}">${i+1}</div>
+      <div class="lb-avatar">${p.initial}</div>
+      <div class="lb-info"><div class="lb-name">${p.name}</div><div class="lb-detail">${Math.floor(Math.random()*5+1)} calls</div></div>
+      <div class="lb-score">${fmt(p.score)}</div>
+    </div>`;
+  }).join('');
+}
 
-  if (c.approved) {
-    document.getElementById('modal-approved').classList.remove('hidden');
-    document.getElementById('modal-predict').classList.add('hidden');
-    document.getElementById('modal-approved-date').textContent = new Date(c.approved).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
-    document.getElementById('modal-evidence').textContent = c.evidence || 'Official regulatory approval';
-  } else {
-    document.getElementById('modal-approved').classList.add('hidden');
-    document.getElementById('modal-predict').classList.remove('hidden');
-    const existing = predictions[code];
-    document.getElementById('prediction-date').value = existing || '';
-    document.getElementById('clear-row').classList.toggle('hidden', !existing);
-    document.getElementById('save-btn').disabled = true;
-    updateScorePreview();
+// ─── MODAL ───
+function openCountry(code){
+  selectedCountry=code;const c=COUNTRIES.find(x=>x.code===code);
+  const mc=document.getElementById('modal-content');
+  const user=predictions[code];
+
+  if(c.approved){
+    mc.innerHTML=`<div class="country-display"><span class="flag">${c.flag}</span><div><h2>${c.name}</h2><span class="badge-status approved">Approved</span></div></div>
+      <div class="score-display"><div class="formula-text">Approved</div><div class="big-score high">${new Date(c.approved).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</div></div>
+      <div style="font-size:13px;color:var(--text-tertiary);margin-bottom:20px">${c.evidence}</div>
+      <div class="btn-row"><button class="btn btn-secondary" onclick="closeModal()" style="width:100%">Close</button></div>`;
+  }else{
+    const minDate=new Date().toISOString().split('T')[0];
+    mc.innerHTML=`<div class="country-display"><span class="flag">${c.flag}</span><div><h2>${c.name}</h2><span class="badge-status pending">Pending</span></div></div>
+      <label>When will it be approved?</label>
+      <div class="date-row">
+        <input type="date" class="date-input" id="pred-date" value="${user||''}" min="${minDate}" onchange="updateScore()">
+        <div class="quick-btns">
+          <button class="quick-btn" onclick="quickSet(3)">+3 months</button>
+          <button class="quick-btn" onclick="quickSet(6)">+6 months</button>
+          <button class="quick-btn" onclick="quickSet(12)">+12 months</button>
+          <button class="quick-btn" onclick="quickSet(24)">+24 months</button>
+        </div>
+      </div>
+      <div class="score-display" id="score-box">
+        <div class="formula-text">Score = days before × (100 − days off)</div>
+        <div class="big-score low" id="score-val">—</div>
+        <div class="score-detail" id="score-dtl">Pick a date to see your potential score</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" id="save-btn" onclick="savePred()" disabled>Save</button>
+      </div>
+      ${user?`<div class="btn-row"><button class="btn btn-destructive" onclick="clearPred('${code}');closeModal()">Remove prediction</button></div>`:''}`;
+    if(user)updateScore();
   }
-
-  modal.classList.remove('hidden');
+  document.getElementById('modal-overlay').classList.remove('hidden');
 }
 
-function closeModal() {
-  document.getElementById('modal-overlay').classList.add('hidden');
-  selectedCountry = null;
+function closeModal(){document.getElementById('modal-overlay').classList.add('hidden');selectedCountry=null}
+
+function quickSet(months){
+  const d=new Date();d.setMonth(d.getMonth()+months);
+  document.getElementById('pred-date').value=d.toISOString().split('T')[0];
+  updateScore();
 }
 
-function updateScorePreview() {
-  const dateStr = document.getElementById('prediction-date').value;
-  const saveBtn = document.getElementById('save-btn');
-  const scoreVal = document.getElementById('score-value');
-  const scoreDetail = document.getElementById('score-detail');
-
-  if (!dateStr) {
-    saveBtn.disabled = true;
-    scoreVal.textContent = '—';
-    scoreVal.className = 'value';
-    scoreDetail.textContent = 'Pick a date to see your potential score';
-    return;
-  }
-
-  saveBtn.disabled = false;
-  const now = new Date();
-  const pred = new Date(dateStr);
-
-  // Demo: project a hypothetical approval date for score preview
-  const hypotheticalApproval = new Date(pred);
-  hypotheticalApproval.setDate(hypotheticalApproval.getDate() + 30); // pretend FSD ships 30 days after prediction
-
-  const daysBefore = Math.max(1, Math.round((hypotheticalApproval - now) / (1000*60*60*24)));
-  const daysOff = Math.abs(Math.round((hypotheticalApproval - pred) / (1000*60*60*24)));
-
-  if (pred <= now) {
-    scoreVal.textContent = '0';
-    scoreVal.className = 'value zero';
-    scoreDetail.textContent = 'Prediction must be in the future';
-    return;
-  }
-
-  // Simplified: score based on how far in the future and how close to "actual" (pretend actual = prediction + 30 days)
-  const score = calculateScore(dateStr, hypotheticalApproval.toISOString().split('T')[0]);
-
-  scoreVal.textContent = formatScore(score);
-  scoreVal.className = score > 0 ? 'value' : 'value zero';
-  scoreDetail.textContent = `If FSD ships ~${new Date(hypotheticalApproval).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}: ${daysBefore} days before × (100 − ${daysOff}) = ${formatScore(score)}`;
+function updateScore(){
+  const inp=document.getElementById('pred-date');if(!inp)return;
+  const v=inp.value,sv=document.getElementById('score-val'),sd=document.getElementById('score-dtl'),sb=document.getElementById('save-btn');
+  if(!v){sv.textContent='—';sv.className='big-score low';sd.textContent='Pick a date to see your potential score';sb.disabled=true;return}
+  sb.disabled=false;
+  const now=new Date();const p=new Date(v);
+  if(p<=now){sv.textContent='0';sv.className='big-score low';sd.textContent='Date must be in the future';return}
+  // Demo: pretend actual approval = predicted + 30 days
+  const fakeActual=new Date(p);fakeActual.setDate(fakeActual.getDate()+30);
+  const score=calcScore(v,fakeActual.toISOString().split('T')[0]);
+  const bef=Math.round((fakeActual-now)/86400000),off=Math.abs(Math.round((fakeActual-p)/86400000));
+  sv.textContent=fmt(score);
+  sv.className='big-score '+(score>5000?'high':score>1000?'mid':'low');
+  sd.innerHTML=`If FSD ships ~${fakeActual.toLocaleDateString('en-GB',{day:'numeric',month:'short'})}: <strong>${bef}</strong> days before × (100 − <strong>${off}</strong>) = <strong>${fmt(score)}</strong>`;
 }
 
-function quickDate(months) {
-  const d = new Date();
-  d.setMonth(d.getMonth() + months);
-  document.getElementById('prediction-date').value = d.toISOString().split('T')[0];
-  updateScorePreview();
+function savePred(){
+  if(!selectedCountry)return;
+  const v=document.getElementById('pred-date').value;if(!v)return;
+  predictions[selectedCountry]=v;savePredictions();renderGrid();closeModal();toast('Prediction saved');
 }
 
-function savePrediction() {
-  if (!selectedCountry) return;
-  const dateStr = document.getElementById('prediction-date').value;
-  if (!dateStr) return;
+function clearPred(code){delete predictions[code];savePredictions();renderGrid()}
 
-  predictions[selectedCountry] = dateStr;
-  savePredictions();
-  renderGrid();
-  closeModal();
-  showToast('Prediction saved!');
+function toast(msg){
+  const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2000);
 }
 
-function clearPrediction() {
-  if (!selectedCountry) return;
-  delete predictions[selectedCountry];
-  savePredictions();
-  renderGrid();
-  closeModal();
-  showToast('Prediction removed');
-}
-
-function showToast(msg) {
-  const t = document.createElement('div');
-  t.className = 'toast';
-  t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(() => t.remove(), 2000);
-}
-
-// --- INIT ---
-document.getElementById('modal-overlay').addEventListener('click', (e) => {
-  if (e.target === document.getElementById('modal-overlay')) closeModal();
-});
-
-// Set min date to today
-document.getElementById('prediction-date').min = new Date().toISOString().split('T')[0];
-
-renderGrid();
-renderLeaderboard();
+// ─── INIT ───
+document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal()});
+renderGrid();renderLeaderboard();
 </script>
 </body>
 </html>
