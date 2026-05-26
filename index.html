@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>When FSD? — Predict when Tesla FSD will arrive in your country</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --border: #2a2a2a;
+    --text: #e0e0e0;
+    --text-dim: #888;
+    --green: #22c55e;
+    --green-bg: rgba(34,197,94,0.12);
+    --amber: #f59e0b;
+    --amber-bg: rgba(245,158,11,0.12);
+    --accent: #3b82f6;
+    --accent-bg: rgba(59,130,246,0.12);
+    --red: #ef4444;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  .container { max-width: 720px; margin: 0 auto; padding: 24px 16px 64px; }
+
+  /* Header */
+  header {
+    text-align: center;
+    padding: 48px 0 32px;
+  }
+  header h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: #fff;
+  }
+  header h1 span { color: var(--green); }
+  header p {
+    color: var(--text-dim);
+    margin-top: 8px;
+    font-size: 0.95rem;
+  }
+
+  /* Stats bar */
+  .stats {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .stat {
+    flex: 1;
+    min-width: 100px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+  }
+  .stat-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #fff;
+  }
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 2px;
+  }
+
+  /* Name input */
+  .name-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .name-section label {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+  .name-section input {
+    flex: 1;
+    min-width: 140px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: #fff;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .name-section input:focus { border-color: var(--accent); }
+  .name-section input::placeholder { color: #555; }
+
+  /* Countries */
+  .section-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+    margin-top: 8px;
+  }
+
+  .country-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+
+  .country-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .country-card:hover {
+    border-color: #444;
+    transform: translateY(-1px);
+  }
+  .country-card.approved {
+    border-color: var(--green);
+    background: var(--green-bg);
+  }
+  .country-card.predicted {
+    border-color: var(--accent);
+    background: var(--accent-bg);
+  }
+
+  .country-flag { font-size: 1.3rem; margin-right: 8px; }
+  .country-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #fff;
+    display: flex;
+    align-items: center;
+  }
+  .country-status {
+    font-size: 0.75rem;
+    margin-top: 4px;
+    font-weight: 500;
+  }
+  .country-status.approved-text { color: var(--green); }
+  .country-status.predicted-text { color: var(--accent); }
+  .country-status.waiting-text { color: var(--text-dim); }
+
+  .country-date {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-top: 3px;
+  }
+  .country-prediction {
+    margin-top: 6px;
+    font-size: 0.75rem;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    max-width: 360px;
+    width: 90%;
+    text-align: center;
+  }
+  .modal h3 {
+    font-size: 1.1rem;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .modal .country-name-lg {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 16px;
+  }
+  .modal label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    text-align: left;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .modal input[type="date"] {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    color: #fff;
+    font-size: 1rem;
+    outline: none;
+    margin-bottom: 16px;
+    font-family: inherit;
+  }
+  .modal input[type="date"]:focus { border-color: var(--accent); }
+  .modal .btn-row {
+    display: flex;
+    gap: 10px;
+  }
+  .btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: opacity 0.2s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+  .btn-danger {
+    background: transparent;
+    color: var(--red);
+    border: 1px solid var(--red);
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    flex: 0;
+  }
+
+  /* Leaderboard */
+  .leaderboard {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .leaderboard-header {
+    display: grid;
+    grid-template-columns: 50px 1fr 100px;
+    padding: 12px 16px;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+  }
+  .lb-row {
+    display: grid;
+    grid-template-columns: 50px 1fr 100px;
+    padding: 12px 16px;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+  }
+  .lb-row:last-child { border-bottom: none; }
+  .lb-rank {
+    font-weight: 700;
+    color: #fff;
+    font-size: 1rem;
+  }
+  .lb-rank.gold { color: #fbbf24; }
+  .lb-rank.silver { color: #94a3b8; }
+  .lb-rank.bronze { color: #d97706; }
+  .lb-name { font-weight: 500; }
+  .lb-score {
+    text-align: right;
+    font-weight: 600;
+    color: var(--green);
+  }
+  .lb-empty {
+    padding: 32px 16px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+  }
+
+  /* About section */
+  .about {
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+  .about h3 {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 12px;
+  }
+  .about p {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .about a { color: var(--accent); text-decoration: none; }
+  .about a:hover { text-decoration: underline; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-size: 0.85rem;
+    color: #fff;
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>When<span>FSD</span>?</h1>
+    <p>Predict when Tesla FSD (Supervised) will be approved in each European country</p>
+  </header>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="name-section">
+    <label for="playerName">Your name</label>
+    <input type="text" id="playerName" placeholder="Enter your name to play…" maxlength="20" autocomplete="off">
+  </div>
+
+  <div class="section-title">Countries</div>
+  <div class="country-grid" id="countryGrid"></div>
+
+  <div class="section-title">🏆 Leaderboard</div>
+  <div class="leaderboard" id="leaderboard">
+    <div class="lb-empty">Make predictions to appear on the leaderboard</div>
+  </div>
+
+  <div class="about">
+    <h3>How it works</h3>
+    <p>
+      Pick a country, set your prediction date. When a country approves FSD, you score points based on how close you were.
+      Earlier correct predictions earn more. Pure bragging rights — no real money involved.<br><br>
+      Data sourced from public regulatory announcements. 
+      <a href="https://electrek.co/2026/04/10/tesla-fsd-supervised-approved-netherlands-rdw-europe/" target="_blank" rel="noopener">Netherlands</a> 
+      &amp; 
+      <a href="https://electrek.co/2026/05/20/tesla-fsd-lithuania-second-european-country/" target="_blank" rel="noopener">Lithuania</a>
+      approved. Who's next?
+    </p>
+  </div>
+</div>
+
+<!-- Prediction Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3>When will FSD arrive in</h3>
+    <div class="country-name-lg" id="modalCountry"></div>
+    <label for="predictionDate">Your prediction</label>
+    <input type="date" id="predictionDate">
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="savePrediction()">Predict</button>
+    </div>
+    <button class="btn btn-danger" id="clearBtn" style="margin-top:12px;display:none;" onclick="clearPrediction()">Remove prediction</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────
+const COUNTRIES = [
+  { id: 'nl', name: 'Netherlands',     flag: '🇳🇱', approved: '2026-04-10', notes: 'First EU approval — RDW' },
+  { id: 'lt', name: 'Lithuania',       flag: '🇱🇹', approved: '2026-05-20', notes: 'Mutual recognition of NL' },
+  { id: 'be', name: 'Belgium',         flag: '🇧🇪', approved: null, notes: 'Testing in Flanders' },
+  { id: 'gr', name: 'Greece',          flag: '🇬🇷', approved: null, notes: 'Bill announced' },
+  { id: 'ie', name: 'Ireland',         flag: '🇮🇪', approved: null, notes: 'Engaging with NSAI' },
+  { id: 'de', name: 'Germany',         flag: '🇩🇪', approved: null },
+  { id: 'fr', name: 'France',          flag: '🇫🇷', approved: null },
+  { id: 'it', name: 'Italy',           flag: '🇮🇹', approved: null },
+  { id: 'es', name: 'Spain',           flag: '🇪🇸', approved: null },
+  { id: 'at', name: 'Austria',         flag: '🇦🇹', approved: null },
+  { id: 'ch', name: 'Switzerland',     flag: '🇨🇭', approved: null, notes: 'Legal framework since Mar 2025' },
+  { id: 'uk', name: 'United Kingdom',  flag: '🇬🇧', approved: null },
+  { id: 'se', name: 'Sweden',          flag: '🇸🇪', approved: null, notes: 'Skeptical — speeding concerns' },
+  { id: 'no', name: 'Norway',          flag: '🇳🇴', approved: null, notes: 'Skeptical — winter performance' },
+  { id: 'dk', name: 'Denmark',         flag: '🇩🇰', approved: null, notes: 'Skeptical' },
+  { id: 'fi', name: 'Finland',         flag: '🇫🇮', approved: null, notes: 'Skeptical — icy roads' },
+  { id: 'pt', name: 'Portugal',        flag: '🇵🇹', approved: null },
+  { id: 'pl', name: 'Poland',          flag: '🇵🇱', approved: null },
+  { id: 'cz', name: 'Czech Republic',  flag: '🇨🇿', approved: null },
+  { id: 'ro', name: 'Romania',         flag: '🇷🇴', approved: null },
+  { id: 'hu', name: 'Hungary',         flag: '🇭🇺', approved: null },
+];
+
+const PLAYER_KEY = 'whenfsd_player';
+const PREDICTIONS_KEY = 'whenfsd_predictions';
+
+// ── STATE ─────────────────────────────────────────────
+let playerName = localStorage.getItem(PLAYER_KEY) || '';
+let predictions = {};
+let editingCountry = null;
+
+try { predictions = JSON.parse(localStorage.getItem(PREDICTIONS_KEY)) || {}; } catch(e) { predictions = {}; }
+
+// ── SCORING ───────────────────────────────────────────
+function scorePrediction(predicted, actual) {
+  const p = new Date(predicted);
+  const a = new Date(actual);
+  const diffDays = Math.abs((a - p) / (1000 * 60 * 60 * 24));
+  // Closer = more points. Max 1000 for exact, halving every 30 days.
+  return Math.max(1, Math.floor(1000 * Math.pow(0.5, diffDays / 30)));
+}
+
+function getTotalScore(name, preds) {
+  let total = 0;
+  for (const [countryId, prediction] of Object.entries(preds)) {
+    const country = COUNTRIES.find(c => c.id === countryId);
+    if (country && country.approved && prediction.player === name) {
+      total += scorePrediction(prediction.date, country.approved);
+    }
+  }
+  return total;
+}
+
+// ── RENDER ────────────────────────────────────────────
+function renderStats() {
+  const approved = COUNTRIES.filter(c => c.approved).length;
+  const total = COUNTRIES.length;
+  const predicted = Object.keys(predictions).length;
+  document.getElementById('stats').innerHTML = `
+    <div class="stat">
+      <div class="stat-value" style="color:var(--green)">${approved}</div>
+      <div class="stat-label">Approved</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">${total - approved}</div>
+      <div class="stat-label">Remaining</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" style="color:var(--accent)">${predicted}</div>
+      <div class="stat-label">Predictions</div>
+    </div>
+  `;
+}
+
+function renderCountries() {
+  const grid = document.getElementById('countryGrid');
+  grid.innerHTML = COUNTRIES.map(c => {
+    const pred = predictions[c.id];
+    let cls = '';
+    let statusHtml = '';
+    
+    if (c.approved) {
+      cls = 'approved';
+      statusHtml = `<div class="country-status approved-text">✅ Approved ${formatDate(c.approved)}</div>`;
+      if (c.notes) statusHtml += `<div class="country-date">${c.notes}</div>`;
+    } else if (pred) {
+      cls = 'predicted';
+      statusHtml = `<div class="country-status predicted-text">🔮 Your prediction</div>`;
+      statusHtml += `<div class="country-prediction">${formatDate(pred.date)}</div>`;
+      if (c.notes) statusHtml += `<div class="country-date">${c.notes}</div>`;
+    } else {
+      statusHtml = `<div class="country-status waiting-text">⏳ Waiting</div>`;
+      if (c.notes) statusHtml += `<div class="country-date">${c.notes}</div>`;
+    }
+    
+    return `
+      <div class="country-card ${cls}" onclick="openModal('${c.id}')">
+        <div class="country-name"><span class="country-flag">${c.flag}</span>${c.name}</div>
+        ${statusHtml}
+      </div>
+    `;
+  }).join('');
+}
+
+function renderLeaderboard() {
+  const lb = document.getElementById('leaderboard');
+  
+  // Group predictions by player, calculate scores
+  const players = {};
+  for (const [countryId, pred] of Object.entries(predictions)) {
+    if (!players[pred.player]) players[pred.player] = { predictions: 0, score: 0 };
+    players[pred.player].predictions++;
+  }
+  
+  // Calculate scores
+  for (const [name, data] of Object.entries(players)) {
+    data.score = getTotalScore(name, predictions);
+  }
+  
+  // Sort
+  const sorted = Object.entries(players).sort((a, b) => b[1].score - a[1].score);
+  
+  if (sorted.length === 0) {
+    lb.innerHTML = '<div class="lb-empty">Make predictions to appear on the leaderboard</div>';
+    return;
+  }
+  
+  lb.innerHTML = `
+    <div class="leaderboard-header">
+      <span>#</span><span>Player</span><span>Score</span>
+    </div>
+    ${sorted.map(([name, data], i) => {
+      let rankClass = '';
+      if (i === 0) rankClass = 'gold';
+      else if (i === 1) rankClass = 'silver';
+      else if (i === 2) rankClass = 'bronze';
+      return `
+        <div class="lb-row">
+          <span class="lb-rank ${rankClass}">${i + 1}</span>
+          <span class="lb-name">${escapeHtml(name)}</span>
+          <span class="lb-score">${data.score} pts</span>
+        </div>
+      `;
+    }).join('')}
+  `;
+}
+
+function render() {
+  renderStats();
+  renderCountries();
+  renderLeaderboard();
+}
+
+// ── MODAL ─────────────────────────────────────────────
+function openModal(countryId) {
+  if (!playerName) {
+    document.getElementById('playerName').focus();
+    showToast('Enter your name first');
+    return;
+  }
+  const country = COUNTRIES.find(c => c.id === countryId);
+  if (!country) return;
+  if (country.approved) {
+    showToast(`${country.name} already approved — too late!`);
+    return;
+  }
+  
+  editingCountry = countryId;
+  document.getElementById('modalCountry').textContent = country.flag + ' ' + country.name;
+  
+  const pred = predictions[countryId];
+  document.getElementById('predictionDate').value = pred ? pred.date : '';
+  document.getElementById('clearBtn').style.display = pred ? 'block' : 'none';
+  
+  // Set min date to today
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('predictionDate').setAttribute('min', today);
+  
+  document.getElementById('modal').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('active');
+  editingCountry = null;
+}
+
+function savePrediction() {
+  const date = document.getElementById('predictionDate').value;
+  if (!date) return showToast('Pick a date');
+  if (!editingCountry) return;
+  
+  const today = new Date().toISOString().split('T')[0];
+  if (date < today) return showToast('Date must be in the future');
+  
+  predictions[editingCountry] = {
+    player: playerName,
+    date: date,
+    placed: new Date().toISOString()
+  };
+  
+  savePredictions();
+  closeModal();
+  render();
+  showToast('Prediction saved! 🎯');
+}
+
+function clearPrediction() {
+  if (!editingCountry) return;
+  delete predictions[editingCountry];
+  savePredictions();
+  closeModal();
+  render();
+  showToast('Prediction removed');
+}
+
+// ── HELPERS ───────────────────────────────────────────
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T00:00:00');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function savePredictions() {
+  localStorage.setItem(PREDICTIONS_KEY, JSON.stringify(predictions));
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toast._timeout);
+  toast._timeout = setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+// ── INIT ──────────────────────────────────────────────
+document.getElementById('playerName').value = playerName;
+document.getElementById('playerName').addEventListener('input', function() {
+  playerName = this.value.trim();
+  if (playerName) {
+    localStorage.setItem(PLAYER_KEY, playerName);
+    // Update existing predictions with new name
+    let changed = false;
+    for (const key of Object.keys(predictions)) {
+      predictions[key].player = playerName;
+      changed = true;
+    }
+    if (changed) savePredictions();
+    render();
+  }
+});
+
+// Close modal on overlay click
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// Esc to close
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeModal();
+});
+
+render();
+</script>
+
+</body>
+</html>
