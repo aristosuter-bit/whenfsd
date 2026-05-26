@@ -2,692 +2,457 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>When FSD? — Predict when Tesla FSD will arrive in your country</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>WHEN FSD?</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  
-  :root {
-    --bg: #0a0a0a;
-    --surface: #141414;
-    --border: #2a2a2a;
-    --text: #e0e0e0;
-    --text-dim: #888;
-    --green: #22c55e;
-    --green-bg: rgba(34,197,94,0.12);
-    --amber: #f59e0b;
-    --amber-bg: rgba(245,158,11,0.12);
-    --accent: #3b82f6;
-    --accent-bg: rgba(59,130,246,0.12);
-    --red: #ef4444;
-  }
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0a;--surface:#141414;--border:#222;--text:#e5e5e5;--dim:#888;--green:#10b981;--amber:#f59e0b;--red:#ef4444;--accent:#3b82f6}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;-webkit-font-smoothing:antialiased}
+header{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--border);padding:16px 20px;display:flex;align-items:center;justify-content:space-between}
+h1{font-size:20px;font-weight:700;letter-spacing:-0.5px}
+h1 span{color:var(--accent)}
+header p{font-size:12px;color:var(--dim)}
+main{padding:16px;max-width:900px;margin:0 auto}
+.section-title{font-size:14px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin:24px 0 12px;padding-left:4px}
 
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    line-height: 1.5;
-  }
+/* Stats bar */
+.stats{display:flex;gap:12px;margin-bottom:8px}
+.stat-card{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+.stat-card .num{font-size:28px;font-weight:800;letter-spacing:-1px}
+.stat-card .label{font-size:11px;color:var(--dim);margin-top:2px}
+.stat-card.green .num{color:var(--green)}
+.stat-card.amber .num{color:var(--amber)}
 
-  .container { max-width: 720px; margin: 0 auto; padding: 24px 16px 64px; }
+/* Country grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:24px}
+.country-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;cursor:pointer;transition:all .15s;position:relative}
+.country-card:active{transform:scale(.97)}
+.country-card:hover{border-color:var(--accent)}
+.country-card .flag{font-size:24px;margin-bottom:4px}
+.country-card .name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.country-card .status{font-size:10px;margin-top:3px;display:flex;align-items:center;gap:4px}
+.country-card .status .dot{width:6px;height:6px;border-radius:50%}
+.country-card .status.green .dot{background:var(--green)}
+.country-card .status.amber .dot{background:var(--amber)}
+.country-card .prediction{font-size:11px;color:var(--dim);margin-top:4px}
+.badge{position:absolute;top:6px;right:6px;background:var(--green);color:#000;font-size:9px;font-weight:800;padding:2px 6px;border-radius:10px}
+.badge.approved{background:var(--green)} /* same, just class marker */
 
-  /* Header */
-  header {
-    text-align: center;
-    padding: 48px 0 32px;
-  }
-  header h1 {
-    font-size: 2.2rem;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    color: #fff;
-  }
-  header h1 span { color: var(--green); }
-  header p {
-    color: var(--text-dim);
-    margin-top: 8px;
-    font-size: 0.95rem;
-  }
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px 16px 0 0;width:100%;max-width:500px;max-height:85dvh;overflow-y:auto;padding:24px;animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal h2{font-size:18px;margin-bottom:4px}
+.modal .country-status{font-size:13px;color:var(--dim);margin-bottom:16px}
+.modal label{display:block;font-size:12px;color:var(--dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px}
+.modal input[type=date]{width:100%;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:16px;font-family:inherit;margin-bottom:16px}
+.modal input[type=date]:focus{outline:none;border-color:var(--accent)}
+.modal .score-preview{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px}
+.modal .score-preview .formula{font-family:'SF Mono',monospace;font-size:12px;color:var(--dim);margin-bottom:4px}
+.modal .score-preview .value{font-size:24px;font-weight:800;color:var(--green)}
+.modal .score-preview .value.zero{color:var(--dim)}
+.modal .btn-row{display:flex;gap:8px}
+.btn{flex:1;padding:14px;border-radius:10px;font-size:15px;font-weight:600;border:none;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-secondary{background:var(--bg);color:var(--text);border:1px solid var(--border)}
+.btn-danger{background:transparent;color:var(--red);border:1px solid var(--red)}
+.btn:disabled{opacity:.4;pointer-events:none}
 
-  /* Stats bar */
-  .stats {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-  }
-  .stat {
-    flex: 1;
-    min-width: 100px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px;
-    text-align: center;
-  }
-  .stat-value {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #fff;
-  }
-  .stat-label {
-    font-size: 0.75rem;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-top: 2px;
-  }
+/* Leaderboard */
+.leaderboard{list-style:none}
+.lb-item{display:flex;align-items:center;gap:12px;padding:12px;border-bottom:1px solid var(--border);font-size:14px}
+.lb-item:last-child{border:0}
+.lb-rank{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+.lb-rank.gold{background:#f59e0b;color:#000}
+.lb-rank.silver{background:#94a3b8;color:#000}
+.lb-rank.bronze{background:#b45309;color:#fff}
+.lb-avatar{width:32px;height:32px;border-radius:50%;background:var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
+.lb-info{flex:1;min-width:0}
+.lb-name{font-weight:600}
+.lb-detail{font-size:11px;color:var(--dim)}
+.lb-score{font-weight:800;font-size:16px;font-variant-numeric:tabular-nums;flex-shrink:0}
 
-  /* Name input */
-  .name-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px 20px;
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .name-section label {
-    font-size: 0.85rem;
-    color: var(--text-dim);
-    white-space: nowrap;
-  }
-  .name-section input {
-    flex: 1;
-    min-width: 140px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 14px;
-    color: #fff;
-    font-size: 0.9rem;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .name-section input:focus { border-color: var(--accent); }
-  .name-section input::placeholder { color: #555; }
+/* Formula explainer */
+.explainer{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin:24px 0}
+.explainer h3{font-size:14px;margin-bottom:8px}
+.explainer .formula-code{font-family:'SF Mono',monospace;font-size:13px;color:var(--accent);margin-bottom:8px}
+.explainer p{font-size:12px;color:var(--dim);line-height:1.5}
 
-  /* Countries */
-  .section-title {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-dim);
-    margin-bottom: 10px;
-    margin-top: 8px;
-  }
+/* Footer */
+footer{text-align:center;padding:32px 16px;color:var(--dim);font-size:12px}
+footer a{color:var(--accent)}
+.hidden{display:none!important}
 
-  .country-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 10px;
-    margin-bottom: 28px;
-  }
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--green);color:#000;padding:12px 24px;border-radius:10px;font-weight:600;font-size:14px;z-index:300;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 
-  .country-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px 16px;
-    cursor: pointer;
-    transition: border-color 0.2s, transform 0.15s;
-    position: relative;
-    overflow: hidden;
-  }
-  .country-card:hover {
-    border-color: #444;
-    transform: translateY(-1px);
-  }
-  .country-card.approved {
-    border-color: var(--green);
-    background: var(--green-bg);
-  }
-  .country-card.predicted {
-    border-color: var(--accent);
-    background: var(--accent-bg);
-  }
-
-  .country-flag { font-size: 1.3rem; margin-right: 8px; }
-  .country-name {
-    font-weight: 600;
-    font-size: 0.95rem;
-    color: #fff;
-    display: flex;
-    align-items: center;
-  }
-  .country-status {
-    font-size: 0.75rem;
-    margin-top: 4px;
-    font-weight: 500;
-  }
-  .country-status.approved-text { color: var(--green); }
-  .country-status.predicted-text { color: var(--accent); }
-  .country-status.waiting-text { color: var(--text-dim); }
-
-  .country-date {
-    font-size: 0.7rem;
-    color: var(--text-dim);
-    margin-top: 3px;
-  }
-  .country-prediction {
-    margin-top: 6px;
-    font-size: 0.75rem;
-    color: var(--accent);
-    font-weight: 500;
-  }
-
-  /* Modal */
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s;
-  }
-  .modal-overlay.active {
-    opacity: 1;
-    pointer-events: auto;
-  }
-  .modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 28px;
-    max-width: 360px;
-    width: 90%;
-    text-align: center;
-  }
-  .modal h3 {
-    font-size: 1.1rem;
-    color: #fff;
-    margin-bottom: 6px;
-  }
-  .modal .country-name-lg {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #fff;
-    margin-bottom: 16px;
-  }
-  .modal label {
-    display: block;
-    font-size: 0.8rem;
-    color: var(--text-dim);
-    text-align: left;
-    margin-bottom: 4px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  .modal input[type="date"] {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px;
-    color: #fff;
-    font-size: 1rem;
-    outline: none;
-    margin-bottom: 16px;
-    font-family: inherit;
-  }
-  .modal input[type="date"]:focus { border-color: var(--accent); }
-  .modal .btn-row {
-    display: flex;
-    gap: 10px;
-  }
-  .btn {
-    flex: 1;
-    padding: 10px;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    transition: opacity 0.2s;
-  }
-  .btn:hover { opacity: 0.85; }
-  .btn-primary {
-    background: var(--accent);
-    color: #fff;
-  }
-  .btn-ghost {
-    background: transparent;
-    color: var(--text-dim);
-    border: 1px solid var(--border);
-  }
-  .btn-danger {
-    background: transparent;
-    color: var(--red);
-    border: 1px solid var(--red);
-    font-size: 0.8rem;
-    padding: 6px 12px;
-    flex: 0;
-  }
-
-  /* Leaderboard */
-  .leaderboard {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-  }
-  .leaderboard-header {
-    display: grid;
-    grid-template-columns: 50px 1fr 100px;
-    padding: 12px 16px;
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--text-dim);
-    border-bottom: 1px solid var(--border);
-    background: rgba(255,255,255,0.02);
-  }
-  .lb-row {
-    display: grid;
-    grid-template-columns: 50px 1fr 100px;
-    padding: 12px 16px;
-    align-items: center;
-    border-bottom: 1px solid var(--border);
-    font-size: 0.9rem;
-  }
-  .lb-row:last-child { border-bottom: none; }
-  .lb-rank {
-    font-weight: 700;
-    color: #fff;
-    font-size: 1rem;
-  }
-  .lb-rank.gold { color: #fbbf24; }
-  .lb-rank.silver { color: #94a3b8; }
-  .lb-rank.bronze { color: #d97706; }
-  .lb-name { font-weight: 500; }
-  .lb-score {
-    text-align: right;
-    font-weight: 600;
-    color: var(--green);
-  }
-  .lb-empty {
-    padding: 32px 16px;
-    text-align: center;
-    color: var(--text-dim);
-    font-size: 0.9rem;
-  }
-
-  /* About section */
-  .about {
-    margin-top: 40px;
-    padding-top: 24px;
-    border-top: 1px solid var(--border);
-  }
-  .about h3 {
-    font-size: 0.85rem;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 12px;
-  }
-  .about p {
-    font-size: 0.85rem;
-    color: var(--text-dim);
-    line-height: 1.6;
-  }
-  .about a { color: var(--accent); text-decoration: none; }
-  .about a:hover { text-decoration: underline; }
-
-  /* Toast */
-  .toast {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 20px;
-    font-size: 0.85rem;
-    color: #fff;
-    z-index: 200;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s;
-  }
-  .toast.show { opacity: 1; }
+.close-btn{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 </style>
 </head>
 <body>
 
-<div class="container">
-  <header>
-    <h1>When<span>FSD</span>?</h1>
-    <p>Predict when Tesla FSD (Supervised) will be approved in each European country</p>
-  </header>
+<header>
+  <div>
+    <h1>WHEN <span>FSD?</span></h1>
+    <p>The question every Tesla owner in Europe is asking</p>
+  </div>
+</header>
 
-  <div class="stats" id="stats"></div>
-
-  <div class="name-section">
-    <label for="playerName">Your name</label>
-    <input type="text" id="playerName" placeholder="Enter your name to play…" maxlength="20" autocomplete="off">
+<main>
+  <div class="stats">
+    <div class="stat-card green">
+      <div class="num" id="stat-approved">2</div>
+      <div class="label">APPROVED</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="num" id="stat-pending">26</div>
+      <div class="label">PENDING</div>
+    </div>
+    <div class="stat-card">
+      <div class="num" id="stat-players">0</div>
+      <div class="label">PLAYERS</div>
+    </div>
   </div>
 
   <div class="section-title">Countries</div>
-  <div class="country-grid" id="countryGrid"></div>
+  <div class="grid" id="country-grid"></div>
 
-  <div class="section-title">🏆 Leaderboard</div>
-  <div class="leaderboard" id="leaderboard">
-    <div class="lb-empty">Make predictions to appear on the leaderboard</div>
+  <div class="section-title">Leaderboard</div>
+  <ul class="leaderboard" id="leaderboard"></ul>
+
+  <div class="explainer">
+    <h3>How Scoring Works</h3>
+    <div class="formula-code">Score = days_before × (100 − days_off)</div>
+    <p>The earlier you predict and the closer you are to the actual approval date — the more points you get. Change your prediction to a later date and your score drops. Push it forward too many times and you'll score nothing. Simple.</p>
   </div>
 
-  <div class="about">
-    <h3>How it works</h3>
-    <p>
-      Pick a country, set your prediction date. When a country approves FSD, you score points based on how close you were.
-      Earlier correct predictions earn more. Pure bragging rights — no real money involved.<br><br>
-      Data sourced from public regulatory announcements. 
-      <a href="https://electrek.co/2026/04/10/tesla-fsd-supervised-approved-netherlands-rdw-europe/" target="_blank" rel="noopener">Netherlands</a> 
-      &amp; 
-      <a href="https://electrek.co/2026/05/20/tesla-fsd-lithuania-second-european-country/" target="_blank" rel="noopener">Lithuania</a>
-      approved. Who's next?
-    </p>
-  </div>
-</div>
+  <footer>
+    Prototype · whenfsd.com<br>
+    <a href="https://github.com/aristosuter-bit/whenfsd" target="_blank">GitHub</a>
+  </footer>
+</main>
 
-<!-- Prediction Modal -->
-<div class="modal-overlay" id="modal">
-  <div class="modal">
-    <h3>When will FSD arrive in</h3>
-    <div class="country-name-lg" id="modalCountry"></div>
-    <label for="predictionDate">Your prediction</label>
-    <input type="date" id="predictionDate">
-    <div class="btn-row">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="savePrediction()">Predict</button>
+<div class="modal-overlay hidden" id="modal-overlay">
+  <div class="modal" id="modal">
+    <button class="close-btn" onclick="closeModal()">✕</button>
+    <h2 id="modal-flag"></h2>
+    <h2 id="modal-name"></h2>
+    <div class="country-status" id="modal-status"></div>
+    <div id="modal-approved" class="hidden">
+      <div class="score-preview">
+        <div class="formula">Approved date</div>
+        <div class="value" id="modal-approved-date"></div>
+      </div>
+      <div class="score-preview">
+        <div class="formula">Evidence</div>
+        <div style="font-size:13px;color:var(--dim)" id="modal-evidence"></div>
+      </div>
+      <button class="btn btn-secondary" onclick="closeModal()" style="width:100%">Close</button>
     </div>
-    <button class="btn btn-danger" id="clearBtn" style="margin-top:12px;display:none;" onclick="clearPrediction()">Remove prediction</button>
+    <div id="modal-predict">
+      <label>Your prediction</label>
+      <div style="position:relative;margin-bottom:16px">
+        <input type="date" id="prediction-date" onchange="updateScorePreview()">
+        <div style="position:absolute;right:12px;top:50%;transform:translateY(-50%);display:flex;gap:4px">
+          <button onclick="quickDate(3)" style="padding:4px 8px;font-size:11px;background:var(--bg);color:var(--accent);border:1px solid var(--accent);border-radius:4px;cursor:pointer;font-family:inherit">+3m</button>
+          <button onclick="quickDate(6)" style="padding:4px 8px;font-size:11px;background:var(--bg);color:var(--accent);border:1px solid var(--accent);border-radius:4px;cursor:pointer;font-family:inherit">+6m</button>
+          <button onclick="quickDate(12)" style="padding:4px 8px;font-size:11px;background:var(--bg);color:var(--accent);border:1px solid var(--accent);border-radius:4px;cursor:pointer;font-family:inherit">+12m</button>
+        </div>
+      </div>
+      <div class="score-preview" id="score-preview">
+        <div class="formula">Score = days_before × (100 − days_off)</div>
+        <div class="value" id="score-value">—</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:4px" id="score-detail"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" id="save-btn" onclick="savePrediction()">Save Prediction</button>
+      </div>
+      <div class="btn-row" style="margin-top:6px" id="clear-row">
+        <button class="btn btn-danger" id="clear-btn" onclick="clearPrediction()">Remove Prediction</button>
+      </div>
+    </div>
   </div>
 </div>
-
-<div class="toast" id="toast"></div>
 
 <script>
-// ── DATA ──────────────────────────────────────────────
+// --- DATA ---
 const COUNTRIES = [
-  { id: 'nl', name: 'Netherlands',     flag: '🇳🇱', approved: '2026-04-10', notes: 'First EU approval — RDW' },
-  { id: 'lt', name: 'Lithuania',       flag: '🇱🇹', approved: '2026-05-20', notes: 'Mutual recognition of NL' },
-  { id: 'be', name: 'Belgium',         flag: '🇧🇪', approved: null, notes: 'Testing in Flanders' },
-  { id: 'gr', name: 'Greece',          flag: '🇬🇷', approved: null, notes: 'Bill announced' },
-  { id: 'ie', name: 'Ireland',         flag: '🇮🇪', approved: null, notes: 'Engaging with NSAI' },
-  { id: 'de', name: 'Germany',         flag: '🇩🇪', approved: null },
-  { id: 'fr', name: 'France',          flag: '🇫🇷', approved: null },
-  { id: 'it', name: 'Italy',           flag: '🇮🇹', approved: null },
-  { id: 'es', name: 'Spain',           flag: '🇪🇸', approved: null },
-  { id: 'at', name: 'Austria',         flag: '🇦🇹', approved: null },
-  { id: 'ch', name: 'Switzerland',     flag: '🇨🇭', approved: null, notes: 'Legal framework since Mar 2025' },
-  { id: 'uk', name: 'United Kingdom',  flag: '🇬🇧', approved: null },
-  { id: 'se', name: 'Sweden',          flag: '🇸🇪', approved: null, notes: 'Skeptical — speeding concerns' },
-  { id: 'no', name: 'Norway',          flag: '🇳🇴', approved: null, notes: 'Skeptical — winter performance' },
-  { id: 'dk', name: 'Denmark',         flag: '🇩🇰', approved: null, notes: 'Skeptical' },
-  { id: 'fi', name: 'Finland',         flag: '🇫🇮', approved: null, notes: 'Skeptical — icy roads' },
-  { id: 'pt', name: 'Portugal',        flag: '🇵🇹', approved: null },
-  { id: 'pl', name: 'Poland',          flag: '🇵🇱', approved: null },
-  { id: 'cz', name: 'Czech Republic',  flag: '🇨🇿', approved: null },
-  { id: 'ro', name: 'Romania',         flag: '🇷🇴', approved: null },
-  { id: 'hu', name: 'Hungary',         flag: '🇭🇺', approved: null },
+  {code:'LT',name:'Lithuania',flag:'🇱🇹',approved:'2026-02-15',evidence:'EU type-approval granted'},
+  {code:'NL',name:'Netherlands',flag:'🇳🇱',approved:'2026-01-20',evidence:'RDW approval for FSD Supervised'},
+  {code:'DE',name:'Germany',flag:'🇩🇪'},
+  {code:'FR',name:'France',flag:'🇫🇷'},
+  {code:'GB',name:'UK',flag:'🇬🇧'},
+  {code:'IT',name:'Italy',flag:'🇮🇹'},
+  {code:'ES',name:'Spain',flag:'🇪🇸'},
+  {code:'SE',name:'Sweden',flag:'🇸🇪'},
+  {code:'NO',name:'Norway',flag:'🇳🇴'},
+  {code:'DK',name:'Denmark',flag:'🇩🇰'},
+  {code:'BE',name:'Belgium',flag:'🇧🇪'},
+  {code:'AT',name:'Austria',flag:'🇦🇹'},
+  {code:'CH',name:'Switzerland',flag:'🇨🇭'},
+  {code:'PL',name:'Poland',flag:'🇵🇱'},
+  {code:'CZ',name:'Czechia',flag:'🇨🇿'},
+  {code:'PT',name:'Portugal',flag:'🇵🇹'},
+  {code:'IE',name:'Ireland',flag:'🇮🇪'},
+  {code:'FI',name:'Finland',flag:'🇫🇮'},
+  {code:'HU',name:'Hungary',flag:'🇭🇺'},
+  {code:'RO',name:'Romania',flag:'🇷🇴'},
+  {code:'GR',name:'Greece',flag:'🇬🇷'},
+  {code:'SK',name:'Slovakia',flag:'🇸🇰'},
+  {code:'SI',name:'Slovenia',flag:'🇸🇮'},
+  {code:'HR',name:'Croatia',flag:'🇭🇷'},
+  {code:'BG',name:'Bulgaria',flag:'🇧🇬'},
+  {code:'EE',name:'Estonia',flag:'🇪🇪'},
+  {code:'LV',name:'Latvia',flag:'🇱🇻'},
+  {code:'LU',name:'Luxembourg',flag:'🇱🇺'},
 ];
 
-const PLAYER_KEY = 'whenfsd_player';
-const PREDICTIONS_KEY = 'whenfsd_predictions';
+// Fake players
+const PLAYERS = [
+  {name:'TeslaTom',avatar:'T',points:12500},
+  {name:'FSDProphet',avatar:'F',points:9840},
+  {name:'EV_Nordic',avatar:'E',points:7200},
+  {name:'AutopilotMax',avatar:'A',points:6100},
+  {name:'ElonFan42',avatar:'E',points:4300},
+  {name:'MunichDriver',avatar:'M',points:3100},
+  {name:'ZurichEV',avatar:'Z',points:2800},
+  {name:'OsloCharger',avatar:'O',points:1800},
+  {name:'ParisTesla',avatar:'P',points:950},
+  {name:'RomaniaFSD',avatar:'R',points:400},
+];
 
-// ── STATE ─────────────────────────────────────────────
-let playerName = localStorage.getItem(PLAYER_KEY) || '';
-let predictions = {};
-let editingCountry = null;
+// Fake predictions for demo
+const FAKE_PREDICTIONS = {
+  DE: ['2027-03-15','2027-06-01','2027-09-20','2028-01-10'],
+  FR: ['2027-06-01','2027-12-15','2028-03-01'],
+  GB: ['2027-09-01','2028-01-15','2028-06-01'],
+  SE: ['2027-03-01','2027-06-15'],
+  NO: ['2026-12-01','2027-03-15','2027-06-01'],
+  CH: ['2027-12-01','2028-03-15'],
+  IT: ['2027-09-15','2028-01-01'],
+  AT: ['2027-06-01','2027-09-15'],
+};
 
-try { predictions = JSON.parse(localStorage.getItem(PREDICTIONS_KEY)) || {}; } catch(e) { predictions = {}; }
+// Local state (in-memory for prototype)
+let predictions = loadPredictions();
+let selectedCountry = null;
 
-// ── SCORING ───────────────────────────────────────────
-function scorePrediction(predicted, actual) {
-  const p = new Date(predicted);
-  const a = new Date(actual);
-  const diffDays = Math.abs((a - p) / (1000 * 60 * 60 * 24));
-  // Closer = more points. Max 1000 for exact, halving every 30 days.
-  return Math.max(1, Math.floor(1000 * Math.pow(0.5, diffDays / 30)));
+// --- PERSISTENCE ---
+function loadPredictions() {
+  try {
+    return JSON.parse(localStorage.getItem('whenfsd_predictions')) || {};
+  } catch { return {}; }
+}
+function savePredictions() {
+  localStorage.setItem('whenfsd_predictions', JSON.stringify(predictions));
 }
 
-function getTotalScore(name, preds) {
-  let total = 0;
-  for (const [countryId, prediction] of Object.entries(preds)) {
-    const country = COUNTRIES.find(c => c.id === countryId);
-    if (country && country.approved && prediction.player === name) {
-      total += scorePrediction(prediction.date, country.approved);
-    }
-  }
-  return total;
+// --- SCORING ---
+function calculateScore(predictedDate, actualDate) {
+  const pred = new Date(predictedDate);
+  const actual = new Date(actualDate);
+  const daysBefore = Math.max(0, Math.round((actual - pred) / (1000*60*60*24)));
+  const daysOff = Math.abs(Math.round((actual - pred) / (1000*60*60*24)));
+  if (daysBefore <= 0) return 0;
+  const factor = Math.max(0, 100 - daysOff);
+  return Math.round(daysBefore * factor);
 }
 
-// ── RENDER ────────────────────────────────────────────
-function renderStats() {
-  const approved = COUNTRIES.filter(c => c.approved).length;
-  const total = COUNTRIES.length;
-  const predicted = Object.keys(predictions).length;
-  document.getElementById('stats').innerHTML = `
-    <div class="stat">
-      <div class="stat-value" style="color:var(--green)">${approved}</div>
-      <div class="stat-label">Approved</div>
-    </div>
-    <div class="stat">
-      <div class="stat-value">${total - approved}</div>
-      <div class="stat-label">Remaining</div>
-    </div>
-    <div class="stat">
-      <div class="stat-value" style="color:var(--accent)">${predicted}</div>
-      <div class="stat-label">Predictions</div>
-    </div>
-  `;
+function formatScore(n) {
+  if (n >= 1000) return (n/1000).toFixed(1) + 'k';
+  return n.toString();
 }
 
-function renderCountries() {
-  const grid = document.getElementById('countryGrid');
-  grid.innerHTML = COUNTRIES.map(c => {
-    const pred = predictions[c.id];
-    let cls = '';
-    let statusHtml = '';
-    
+// --- RENDER ---
+function getPredictionCount(code) {
+  const fake = FAKE_PREDICTIONS[code] || [];
+  const user = predictions[code];
+  let count = fake.length;
+  if (user && !fake.includes(user)) count++;
+  return count;
+}
+
+function renderGrid() {
+  const grid = document.getElementById('country-grid');
+  const pending = COUNTRIES.filter(c => !c.approved);
+  const approved = COUNTRIES.filter(c => c.approved);
+
+  grid.innerHTML = [...pending, ...approved].map(c => {
+    const count = getPredictionCount(c.code);
+    const userPred = predictions[c.code];
+    const approvedHTML = c.approved
+      ? `<span class="badge">✓</span>`
+      : '';
+
+    let predHTML = '';
     if (c.approved) {
-      cls = 'approved';
-      statusHtml = `<div class="country-status approved-text">✅ Approved ${formatDate(c.approved)}</div>`;
-      if (c.notes) statusHtml += `<div class="country-date">${c.notes}</div>`;
-    } else if (pred) {
-      cls = 'predicted';
-      statusHtml = `<div class="country-status predicted-text">🔮 Your prediction</div>`;
-      statusHtml += `<div class="country-prediction">${formatDate(pred.date)}</div>`;
-      if (c.notes) statusHtml += `<div class="country-date">${c.notes}</div>`;
-    } else {
-      statusHtml = `<div class="country-status waiting-text">⏳ Waiting</div>`;
-      if (c.notes) statusHtml += `<div class="country-date">${c.notes}</div>`;
+      predHTML = `<div class="prediction">Approved ${new Date(c.approved).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>`;
+    } else if (userPred) {
+      predHTML = `<div class="prediction">Your call: ${new Date(userPred).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>`;
+    } else if (count > 0) {
+      predHTML = `<div class="prediction">${count} prediction${count>1?'s':''}</div>`;
     }
-    
+
     return `
-      <div class="country-card ${cls}" onclick="openModal('${c.id}')">
-        <div class="country-name"><span class="country-flag">${c.flag}</span>${c.name}</div>
-        ${statusHtml}
-      </div>
-    `;
+      <div class="country-card" onclick="openCountry('${c.code}')">
+        ${approvedHTML}
+        <div class="flag">${c.flag}</div>
+        <div class="name">${c.name}</div>
+        <div class="status ${c.approved?'green':'amber'}">
+          <span class="dot"></span>
+          ${c.approved ? 'APPROVED' : 'PENDING'}
+        </div>
+        ${predHTML}
+      </div>`;
   }).join('');
+
+  document.getElementById('stat-approved').textContent = approved.length;
+  document.getElementById('stat-pending').textContent = pending.length;
+  document.getElementById('stat-players').textContent = PLAYERS.length + 3;
 }
 
 function renderLeaderboard() {
   const lb = document.getElementById('leaderboard');
-  
-  // Group predictions by player, calculate scores
-  const players = {};
-  for (const [countryId, pred] of Object.entries(predictions)) {
-    if (!players[pred.player]) players[pred.player] = { predictions: 0, score: 0 };
-    players[pred.player].predictions++;
-  }
-  
-  // Calculate scores
-  for (const [name, data] of Object.entries(players)) {
-    data.score = getTotalScore(name, predictions);
-  }
-  
-  // Sort
-  const sorted = Object.entries(players).sort((a, b) => b[1].score - a[1].score);
-  
-  if (sorted.length === 0) {
-    lb.innerHTML = '<div class="lb-empty">Make predictions to appear on the leaderboard</div>';
-    return;
-  }
-  
-  lb.innerHTML = `
-    <div class="leaderboard-header">
-      <span>#</span><span>Player</span><span>Score</span>
-    </div>
-    ${sorted.map(([name, data], i) => {
-      let rankClass = '';
-      if (i === 0) rankClass = 'gold';
-      else if (i === 1) rankClass = 'silver';
-      else if (i === 2) rankClass = 'bronze';
-      return `
-        <div class="lb-row">
-          <span class="lb-rank ${rankClass}">${i + 1}</span>
-          <span class="lb-name">${escapeHtml(name)}</span>
-          <span class="lb-score">${data.score} pts</span>
+  lb.innerHTML = PLAYERS.map((p,i) => {
+    const rankClass = i===0?'gold':i===1?'silver':i===2?'bronze':'';
+    return `
+      <li class="lb-item">
+        <div class="lb-rank ${rankClass}">${i+1}</div>
+        <div class="lb-avatar">${p.avatar}</div>
+        <div class="lb-info">
+          <div class="lb-name">${p.name}</div>
+          <div class="lb-detail">${Math.floor(Math.random()*5+1)} countries called</div>
         </div>
-      `;
-    }).join('')}
-  `;
+        <div class="lb-score">${formatScore(p.points)}</div>
+      </li>`;
+  }).join('');
 }
 
-function render() {
-  renderStats();
-  renderCountries();
-  renderLeaderboard();
-}
+// --- MODAL ---
+function openCountry(code) {
+  selectedCountry = code;
+  const c = COUNTRIES.find(x => x.code === code);
+  const modal = document.getElementById('modal-overlay');
+  document.getElementById('modal-flag').textContent = c.flag;
+  document.getElementById('modal-name').textContent = c.name;
+  document.getElementById('modal-status').textContent = c.approved ? 'APPROVED' : 'PENDING';
 
-// ── MODAL ─────────────────────────────────────────────
-function openModal(countryId) {
-  if (!playerName) {
-    document.getElementById('playerName').focus();
-    showToast('Enter your name first');
-    return;
+  if (c.approved) {
+    document.getElementById('modal-approved').classList.remove('hidden');
+    document.getElementById('modal-predict').classList.add('hidden');
+    document.getElementById('modal-approved-date').textContent = new Date(c.approved).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+    document.getElementById('modal-evidence').textContent = c.evidence || 'Official regulatory approval';
+  } else {
+    document.getElementById('modal-approved').classList.add('hidden');
+    document.getElementById('modal-predict').classList.remove('hidden');
+    const existing = predictions[code];
+    document.getElementById('prediction-date').value = existing || '';
+    document.getElementById('clear-row').classList.toggle('hidden', !existing);
+    document.getElementById('save-btn').disabled = true;
+    updateScorePreview();
   }
-  const country = COUNTRIES.find(c => c.id === countryId);
-  if (!country) return;
-  if (country.approved) {
-    showToast(`${country.name} already approved — too late!`);
-    return;
-  }
-  
-  editingCountry = countryId;
-  document.getElementById('modalCountry').textContent = country.flag + ' ' + country.name;
-  
-  const pred = predictions[countryId];
-  document.getElementById('predictionDate').value = pred ? pred.date : '';
-  document.getElementById('clearBtn').style.display = pred ? 'block' : 'none';
-  
-  // Set min date to today
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('predictionDate').setAttribute('min', today);
-  
-  document.getElementById('modal').classList.add('active');
+
+  modal.classList.remove('hidden');
 }
 
 function closeModal() {
-  document.getElementById('modal').classList.remove('active');
-  editingCountry = null;
+  document.getElementById('modal-overlay').classList.add('hidden');
+  selectedCountry = null;
+}
+
+function updateScorePreview() {
+  const dateStr = document.getElementById('prediction-date').value;
+  const saveBtn = document.getElementById('save-btn');
+  const scoreVal = document.getElementById('score-value');
+  const scoreDetail = document.getElementById('score-detail');
+
+  if (!dateStr) {
+    saveBtn.disabled = true;
+    scoreVal.textContent = '—';
+    scoreVal.className = 'value';
+    scoreDetail.textContent = 'Pick a date to see your potential score';
+    return;
+  }
+
+  saveBtn.disabled = false;
+  const now = new Date();
+  const pred = new Date(dateStr);
+
+  // Demo: project a hypothetical approval date for score preview
+  const hypotheticalApproval = new Date(pred);
+  hypotheticalApproval.setDate(hypotheticalApproval.getDate() + 30); // pretend FSD ships 30 days after prediction
+
+  const daysBefore = Math.max(1, Math.round((hypotheticalApproval - now) / (1000*60*60*24)));
+  const daysOff = Math.abs(Math.round((hypotheticalApproval - pred) / (1000*60*60*24)));
+
+  if (pred <= now) {
+    scoreVal.textContent = '0';
+    scoreVal.className = 'value zero';
+    scoreDetail.textContent = 'Prediction must be in the future';
+    return;
+  }
+
+  // Simplified: score based on how far in the future and how close to "actual" (pretend actual = prediction + 30 days)
+  const score = calculateScore(dateStr, hypotheticalApproval.toISOString().split('T')[0]);
+
+  scoreVal.textContent = formatScore(score);
+  scoreVal.className = score > 0 ? 'value' : 'value zero';
+  scoreDetail.textContent = `If FSD ships ~${new Date(hypotheticalApproval).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}: ${daysBefore} days before × (100 − ${daysOff}) = ${formatScore(score)}`;
+}
+
+function quickDate(months) {
+  const d = new Date();
+  d.setMonth(d.getMonth() + months);
+  document.getElementById('prediction-date').value = d.toISOString().split('T')[0];
+  updateScorePreview();
 }
 
 function savePrediction() {
-  const date = document.getElementById('predictionDate').value;
-  if (!date) return showToast('Pick a date');
-  if (!editingCountry) return;
-  
-  const today = new Date().toISOString().split('T')[0];
-  if (date < today) return showToast('Date must be in the future');
-  
-  predictions[editingCountry] = {
-    player: playerName,
-    date: date,
-    placed: new Date().toISOString()
-  };
-  
+  if (!selectedCountry) return;
+  const dateStr = document.getElementById('prediction-date').value;
+  if (!dateStr) return;
+
+  predictions[selectedCountry] = dateStr;
   savePredictions();
+  renderGrid();
   closeModal();
-  render();
-  showToast('Prediction saved! 🎯');
+  showToast('Prediction saved!');
 }
 
 function clearPrediction() {
-  if (!editingCountry) return;
-  delete predictions[editingCountry];
+  if (!selectedCountry) return;
+  delete predictions[selectedCountry];
   savePredictions();
+  renderGrid();
   closeModal();
-  render();
   showToast('Prediction removed');
 }
 
-// ── HELPERS ───────────────────────────────────────────
-function formatDate(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr + 'T00:00:00');
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
-}
-
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
-
-function savePredictions() {
-  localStorage.setItem(PREDICTIONS_KEY, JSON.stringify(predictions));
-}
-
 function showToast(msg) {
-  const toast = document.getElementById('toast');
-  toast.textContent = msg;
-  toast.classList.add('show');
-  clearTimeout(toast._timeout);
-  toast._timeout = setTimeout(() => toast.classList.remove('show'), 2000);
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2000);
 }
 
-// ── INIT ──────────────────────────────────────────────
-document.getElementById('playerName').value = playerName;
-document.getElementById('playerName').addEventListener('input', function() {
-  playerName = this.value.trim();
-  if (playerName) {
-    localStorage.setItem(PLAYER_KEY, playerName);
-    // Update existing predictions with new name
-    let changed = false;
-    for (const key of Object.keys(predictions)) {
-      predictions[key].player = playerName;
-      changed = true;
-    }
-    if (changed) savePredictions();
-    render();
-  }
+// --- INIT ---
+document.getElementById('modal-overlay').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
 });
 
-// Close modal on overlay click
-document.getElementById('modal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
+// Set min date to today
+document.getElementById('prediction-date').min = new Date().toISOString().split('T')[0];
 
-// Esc to close
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeModal();
-});
-
-render();
+renderGrid();
+renderLeaderboard();
 </script>
-
 </body>
 </html>
